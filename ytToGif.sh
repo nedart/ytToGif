@@ -1,17 +1,10 @@
 #!/bin/bash
 
-# Steps:
-# 1. prompt user for youtube URL
-# 2. download video
-# 3. prompt user for two timestamps, or timestamp and duration
-# 4. trim video based on input
-# 5. convert video to images and let user know they are free to modify the images
-# 6. prompt user for crop dimensions and output size, either xy or %, and quality %
-# 7. crop, downsize and lower quality of images
-
-# 8. convert images to GIF
-# 9. prompt user if they wish to return to a previous step
-# 10. cleanup; delete the video, trimmed video, images and cropped images
+# TODO:
+# safety checks
+# use zenity instead of read
+# ability to make more than one gif per video / reuse existing video
+# ability to go back steps if mistakes are made
 
 # exit script on command failure
 set -e
