@@ -7,6 +7,7 @@
 # TODO: ability to go back steps if mistakes are made
 # TODO: dependency checker (ffmpeg, imagemagick, zenity)
 # TODO: consistency with variables names, file names, and project name
+# TODO: prompting for a new size relies on the user knowing the syntax for -geometry; fix this
 
 # exit script on command failure
 set -e
