@@ -1,10 +1,12 @@
 #!/bin/bash
 
-# TODO:
-# safety checks
-# use zenity instead of read
-# ability to make more than one gif per video / reuse existing video
-# ability to go back steps if mistakes are made
+# geeqie is recommended for viewing frames
+# TODO: safety checks
+# TODO: use zenity instead of read
+# TODO: ability to make more than one gif per video / reuse existing video
+# TODO: ability to go back steps if mistakes are made
+# TODO: dependency checker (ffmpeg, imagemagick, zenity)
+# TODO: consistency with variables names, file names, and project name
 
 # exit script on command failure
 set -e
