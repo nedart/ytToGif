@@ -4,6 +4,7 @@
 # TODO: safety checks
 # TODO: use zenity instead of read
 # TODO: ability to make more than one gif per video / reuse existing video
+# TODO: ability to tweak frame quality as well as size/crop (/w preview?)
 # TODO: ability to go back steps if mistakes are made
 # TODO: dependency checker (ffmpeg, imagemagick, zenity, and youtube-dl)
 # TODO: consistency with variables names, file names, and project name
