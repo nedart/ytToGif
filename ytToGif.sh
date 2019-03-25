@@ -86,7 +86,7 @@ read -p "Specify the speed of the GIF animation [8]: " SPEED
 printf "Creating GIF..."
 convert -delay $SPEED -loop 0 cropped/* $HOME/ytgif-$EPOCH.gif
 echo "Done!"
-xdg-open "ytgif-$EPOCH.gif" & >/dev/null 2>&1
+xdg-open "$HOME/ytgif-$EPOCH.gif" & >/dev/null 2>&1
 
 # prompt to clean up
 read -p "Delete temp files? [Y/N]: " DELETE
