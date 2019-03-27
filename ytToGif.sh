@@ -11,26 +11,22 @@
 # TODO: prompting for a new size relies on the user knowing the syntax for -geometry; fix this
 
 ZTITLE="Youtube to GIF"
-VIDEOPRE="/tmp/youtubetogifvideo"
+VIDEO="/tmp/youtubetogif_video.mp4"
+VIDEOTRIMMED="/tmp/youtubetogif_video_trimmed.mp4"
+FRAMES="/tmp/youtubetogif_frames"
+FRAMESCROPPED="/tmp/youtubetogif_frames_cropped"
 
 cd /tmp
 
+function cleanup {
+	[[ -e $VIDEOTRIMMED ]] && rm -v $VIDEOTRIMMED
+	[[ -e $FRAMES ]]  && rm -rv $FRAMES
+	[[ -e $FRAMESCROPPED ]]  && rm -rv $FRAMESCROPPED
+}
+
 function videoExists {
-	ls $VIDEOPRE*[mkv,mp4,flv] >/dev/null 2>&1
+	[[ -e $VIDEO ]]
 	return $?
-}
-
-function getVideoFilename {
-	echo $VIDEOPRE*[mkv,mp4,flv]
-}
-
-function getVideoExt {
-	filename=$(getVideoFilename)
-	echo "${filename##*.}"
-}
-
-function rmVideoFiles {
-	rm -v $VIDEOPRE*
 }
 
 function useExistingVideo {
@@ -43,9 +39,9 @@ function getURL {
 }
 
 function downloadVideo {
-	[[ -z $1 ]] && exit 1
+	[[ -z $1 ]] && exit 1 # abort if input is empty
 	# TODO: verify URL
-	xterm -e "youtube-dl \"$1\" --output \"$VIDEOPRE\"; read -p \"Press any key to continue...\""
+	xterm -e "youtube-dl \"$1\" -f bestvideo --output $VIDEO || read -p \"Press any key to continue...\""
 }
 
 function getStartTime {
@@ -57,37 +53,38 @@ function getDuration {
 }
 
 function trimVideo {
-	ext=$(getVideoExt)
 	start=$(getStartTime)
 	duration=$(getDuration)
-	output="${VIDEOPRE}_trimmed.$ext"
-	[[ -e $output ]] && rm -v $output
-	xterm -e "ffmpeg -i $(getVideoFilename) -ss $start -t $duration $output; read -p \"Press any key to continue...\""
+	xterm -e "ffmpeg -i $VIDEO -ss $start -t $duration $VIDEOTRIMMED || read -p \"Press any key to continue...\""
 }
 
-# download new video only if video doesn't exist or the user chooses not to use it
-if ! (videoExists && useExistingVideo); then
-	rmVideoFiles
-	downloadVideo $(getURL)
-	videoExists || exit 1
+function trimmedExists {
+	[[ -e $VIDEOTRIMMED ]]
+	return $?
+}
+
+function getFPS {
+	echo $(zenity --entry --title="$ZTITLE" --text="Enter FPS" --entry-text="7")
+}
+
+function makeFrames {
+	xterm -e "ffmpeg -i $VIDEOTRIMMED -r $(getFPS) $FRAMES/frame-%3d.png || read -p \"Press any key to continue...\""
+}
+
+cleanup
+
+if ! (videoExists && useExistingVideo); then # download new video only if it doesn't exist or the user chooses not to use it
+	videoExists && rm -v $VIDEO          # delete video if it already exists since we're downloading a new one
+	downloadVideo $(getURL)              # download video based on user input
+	videoExists || exit 1                # abort if video doesn't exist, i.e. download failed
 fi
 
-trimVideo
+trimVideo                                    # trim video based on user input
+trimmedExists || exit 1                      # abort if trimmed video doesn't exist, i.e. trim failed
+mkdir $FRAMES                                # create directory for frames
+makeFrames                                   # turn trimmed video into still frames
+geeqie $FRAMES > /dev/null 2>&1              # let user delete frames and note dimensions
 exit
-
-# prompt user for FPS to extract from video
-read -p "Enter FPS for converting video to images [15]: " FPS
-[[ -z "$FPS" ]] && FPS=15
-
-# convert trimmed video to images
-mkdir frames
-printf "Converting to frames..."
-ffmpeg -i "trimmed.$EXT" -r $FPS frames/frame-%3d.png -loglevel fatal
-echo "Done!"
-
-# open working directory for user
-echo "Individual frames may be edited now"
-geeqie frames > /dev/null 2>&1
 
 # prompt user for crop dimensions
 read -p "Enter X for top-left corner: " X1
