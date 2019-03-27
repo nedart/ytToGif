@@ -1,48 +1,79 @@
 #!/bin/bash
 
-# geeqie is recommended for viewing frames
 # TODO: safety checks
+# TODO: modularize with functions
 # TODO: use zenity instead of read
 # TODO: ability to make more than one gif per video / reuse existing video
 # TODO: ability to tweak frame quality as well as size/crop (/w preview?)
 # TODO: ability to go back steps if mistakes are made
-# TODO: dependency checker (ffmpeg, imagemagick, zenity, and youtube-dl)
+# TODO: dependency checker (xterm, ffmpeg, imagemagick, zenity, geeqie, and youtube-dl)
 # TODO: consistency with variables names, file names, and project name
 # TODO: prompting for a new size relies on the user knowing the syntax for -geometry; fix this
 
-# exit script on command failure
-set -e
+ZTITLE="Youtube to GIF"
+VIDEOPRE="/tmp/youtubetogifvideo"
 
-# create working directory name using time since Epoch to ensure uniqueness
-EPOCH=$(date +%s)
-mkdir "/tmp/ytgif-$EPOCH"
+cd /tmp
 
-# cd to previous command's last argument; our working directory
-cd "$_"
+function videoExists {
+	ls $VIDEOPRE*[mkv,mp4,flv] >/dev/null 2>&1
+	return $?
+}
 
-# tell user where the working directory is
-echo "Created working directory at $(pwd)"
+function getVideoFilename {
+	echo $VIDEOPRE*[mkv,mp4,flv]
+}
 
-# prompt user for URL
-read -p "Enter Youtube URL: " URL
+function getVideoExt {
+	filename=$(getVideoFilename)
+	echo "${filename##*.}"
+}
 
-# download URL
-printf "Downloading..."
-youtube-dl "$URL" --output "video.%(ext)s" --no-warnings >/dev/null
-echo "Done!"
+function rmVideoFiles {
+	rm -v $VIDEOPRE*
+}
 
-# get downloaded video filename and extension
-ORIGINAL=$(echo video*)
-EXT=${ORIGINAL##*.}
+function useExistingVideo {
+	zenity --question --title="$ZTITLE" --text="Use existing video?"
+	return $?
+}
 
-# prompt user for where to start and end the trim
-read -p "Enter start time (mm:ss): " STARTTIME
-read -p "Enter duration in seconds: " DURATION
+function getURL {
+	echo $(zenity --entry --title="$ZTITLE" --text="Enter Youtube URL")
+}
 
-# trim video based on user input
-printf "Trimming..."
-ffmpeg -i "$ORIGINAL" -ss "00:$STARTTIME" -t "00:00:$DURATION" "trimmed.$EXT" -loglevel fatal
-echo "Done!"
+function downloadVideo {
+	[[ -z $1 ]] && exit 1
+	# TODO: verify URL
+	xterm -e "youtube-dl \"$1\" --output \"$VIDEOPRE\"; read -p \"Press any key to continue...\""
+}
+
+function getStartTime {
+	echo $(zenity --entry --title="$ZTITLE" --text="Enter start time" --entry-text="00:00:00")
+}
+
+function getDuration {
+	echo $(zenity --entry --title="$ZTITLE" --text="Enter duration" --entry-text="0")
+}
+
+function trimVideo {
+	ext=$(getVideoExt)
+	start=$(getStartTime)
+	duration=$(getDuration)
+	output="${VIDEOPRE}_trimmed.$ext"
+	[[ -e $output ]] && rm -v $output
+	xterm -e "ffmpeg -i $(getVideoFilename) -ss $start -t $duration $output; read -p \"Press any key to continue...\""
+}
+
+# download new video only if video doesn't exist or the user chooses not to use it
+if ! (videoExists && useExistingVideo); then
+	rmVideoFiles
+	downloadVideo $(getURL)
+	videoExists || exit 1
+fi
+
+trimVideo
+exit
 
 # prompt user for FPS to extract from video
 read -p "Enter FPS for converting video to images [15]: " FPS
@@ -56,7 +87,7 @@ echo "Done!"
 
 # open working directory for user
 echo "Individual frames may be edited now"
-xdg-open ./ & >/dev/null 2>&1
+geeqie frames > /dev/null 2>&1
 
 # prompt user for crop dimensions
 read -p "Enter X for top-left corner: " X1
