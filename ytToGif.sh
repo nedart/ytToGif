@@ -33,7 +33,7 @@ function input {
 }
 
 function download {
-	xterm -e "youtube-dl "$1" -f bestvideo --output $VIDEO || read -p \"Press any key to continue...\""
+	xterm -e "youtube-dl "$1" -f bestvideo/best --output $VIDEO || read -p \"Press any key to continue...\""
 }
 
 function trim {
