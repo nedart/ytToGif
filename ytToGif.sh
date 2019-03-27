@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # TODO: steps 3,4,5 don't display a terminal window (no output); display one anyway
+#       alternatively display progress using a loop and zenity
 # TODO: ability to tweak frame quality as well as size/crop (/w preview?)
 # TODO: ability to go back steps if mistakes are made
 # TODO: dependency checker (xterm, ffmpeg, imagemagick, zenity, geeqie, pngquant, and youtube-dl)
@@ -136,6 +137,6 @@ speed=$(input "Enter GIF speed" "8")                     # get GIF speed from us
 [[ -z $speed ]] && exit 1                                # abort if input is empty, i.e. user cancelled
 epoch=$(date +%s)                                        # get time since epoch for a unique output name
 convert -delay $speed -loop 0 $FRAMES/* $HOME/$epoch.gif # convert frames into GIF
-xdg-open "out.gif" & >/dev/null 2>&1 &                   # open GIF
+xdg-open $HOME/$epoch.gif >/dev/null 2>&1 &              # open GIF
 
 
