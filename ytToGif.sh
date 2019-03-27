@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO: make dialogs slightly more informative (e.g. GIF speed doesn't say that smaller is faster)
+# TODO: extra safety checks (it's possible to break things by entering strings or out-of-range numbers)
 # TODO: steps 3,4,5 don't display a terminal window (no output); display one anyway
 #       alternatively display progress using a loop and zenity
 # TODO: ability to tweak frame quality as well as size/crop (/w preview?)
@@ -124,6 +126,8 @@ fi
 ### STEP 4: ADJUST QUALITY ###
 ##############################
 
+# this is commented out because this process takes a long time for not much gain
+# TODO: better way to adjust quality, perhaps w/ zenity --scale and a preview
 # for frame in $FRAMES/*; do
 # 	pngquant $frame
 # 	rm $frame
